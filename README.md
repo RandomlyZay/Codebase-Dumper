@@ -1,6 +1,6 @@
 # Codebase Dumper
 
-A no-bullshit VS Code extension that grabs all the relevant source code in your project and dumps it into a single, clean text file.
+A straightforward VS Code extension that grabs all the relevant source code in your project and dumps it into a single, clean text file.
 
 It's designed to make it easy to copy-paste your entire codebase into an AI prompt for review, analysis, or anything else you can think of.
 
@@ -35,5 +35,5 @@ You can modify these Python sets at the top of the file:
 include_patterns: Set[str] = {
     "*.py", "*.ts", "*.tsx", "*.js", "*.jsx", "*.rs",
     "*.html", "*.css", "*.json", "*.toml", "*.yml", "*.yaml",
-    "*.md", "*.txt", "*.sh", "*.env.example"
+    "*.md", "*.txt", "*.sh", "*.env.example", "*.env.*"
 }
