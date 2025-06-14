@@ -14,7 +14,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:codebase-dumper.dumpCodebase"
   ],
   "main": "./out/extension.js",
   "contributes": {
