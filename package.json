@@ -13,14 +13,17 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "codebase-dumper.dumpCodebase",
         "title": "Dump Codebase to Text File"
+      },
+      {
+        "command": "codebase-dumper.dumpDiff",
+        "title": "Dump Git Diff to Text File"
       }
     ],
     "menus": {
@@ -29,6 +32,11 @@
           "when": "explorerResourceIsFolder",
           "command": "codebase-dumper.dumpCodebase",
           "group": "navigation@5"
+        },
+        {
+          "when": "explorerResourceIsFolder",
+          "command": "codebase-dumper.dumpDiff",
+          "group": "navigation@6"
         }
       ]
     }
