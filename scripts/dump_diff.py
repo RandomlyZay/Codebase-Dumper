@@ -1,65 +1,110 @@
 import subprocess
 from pathlib import Path
-import sys
 
 # --- CONFIGURATION ---
 
-prompt_header = """Here are the changes I've made based on your last review.
+prompt_header = """Here are the changes implemented based on your last review.
 
-Please analyze this diff and let me know if I've correctly implemented the suggestions or introduced any new issues.
+Please analyze this diff and let me know if the suggestions were correctly implemented or if any new issues were introduced.
 """
 
 # --- HELPER FUNCTIONS ---
-def get_unique_filename(base_name: str) -> Path:
-    output_path = Path.cwd() / f"{base_name}.txt"
+def get_unique_filename(base_path: Path, base_name: str) -> Path:
+    """Generates a unique filename in the given base path."""
+    output_path = base_path / f"{base_name}.txt"
     counter = 1
     while output_path.exists():
-        output_path = Path.cwd() / f"{base_name} ({counter}).txt"
+        output_path = base_path / f"{base_name} ({counter}).txt"
         counter += 1
     return output_path
 
-def get_diff_excluding_file(exclude_filename: str) -> str:
+def get_full_diff() -> tuple[str, Path | None]:
     """
-    Gets the uncommitted diff and excludes any hunk that involves the given filename.
+    Gets the uncommitted diff for all changes in the repo.
+
+    Returns a tuple of (diff_string, repo_root_path).
+    Returns ("", None) on error.
     """
     try:
-        cmd = ["git", "diff"]
-        raw_diff = subprocess.check_output(cmd, stderr=subprocess.PIPE).decode()
+        # 1. Find the repo root.
+        repo_root_cmd = ["git", "rev-parse", "--show-toplevel"]
+        repo_root_str = subprocess.check_output(repo_root_cmd, text=True, stderr=subprocess.PIPE).strip()
+        repo_root = Path(repo_root_str)
 
-        filtered_lines = []
-        skip_file = False
-        for line in raw_diff.splitlines():
-            if line.startswith("diff --git"):
-                skip_file = exclude_filename in line
-            if not skip_file:
-                filtered_lines.append(line)
-
-        return "\n".join(filtered_lines)
-    except subprocess.CalledProcessError as e:
-        print("❌ Error running 'git diff'.")
-        print(f"   Git error: {e.stderr.decode().strip()}")
-        return ""
+        # 2. Check for initial commit.
+        subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD"],
+            check=True,
+            capture_output=True,
+            cwd=repo_root
+        )
     except FileNotFoundError:
-        print("❌ Git not found or not a repository.")
-        return ""
+        print("❌ Git not found. Make sure it's installed and in your PATH.")
+        return "", None
+    except subprocess.CalledProcessError as e:
+        if "unknown revision" in e.stderr.decode():
+            print("🤔 No commits found. Cannot create a diff against HEAD.")
+            print("   Please make an initial commit first.")
+        else:
+            print(f"❌ Error finding git repo root: {e.stderr.decode().strip()}")
+        return "", None
+
+    # 1. Determine the output filename BEFORE listing untracked files.
+    output_file = get_unique_filename(repo_root, "diff_dump")
+
+    # 2. Get all untracked files.
+    cmd_untracked = ["git", "ls-files", "--others", "--exclude-standard"]
+    untracked_output = subprocess.check_output(cmd_untracked, text=True, cwd=repo_root)
+    
+    # 3. Filter out the determined output filename from the list.
+    untracked_files_to_add = [
+        f for f in untracked_output.splitlines()
+        if repo_root / f != output_file
+    ]
+    
+    try:
+        # 4. Use "intent-to-add" on the FILTERED list.
+        if untracked_files_to_add:
+            subprocess.run(["git", "add", "-N"] + untracked_files_to_add, check=True, cwd=repo_root)
+
+        # 5. Get the diff, excluding the output file via pathspec.
+        pathspec = f":(exclude){output_file.relative_to(repo_root)}"
+        full_diff = subprocess.check_output(
+            ["git", "diff", "HEAD", "--", ".", pathspec],
+            text=True,
+            cwd=repo_root
+        ).strip()
+        
+        return full_diff, output_file
+
+    except subprocess.CalledProcessError as e:
+        print("❌ Error running a git command.")
+        error_message = e.stderr.strip() if hasattr(e, 'stderr') and e.stderr else str(e)
+        print(f"   Git error: {error_message}")
+        return "", None
+    finally:
+        # 6. VERY IMPORTANT: Clean up by resetting only the files we added.
+        if untracked_files_to_add:
+            subprocess.run(["git", "reset", "--"] + untracked_files_to_add, check=True, cwd=repo_root)
 
 # --- MAIN EXECUTION ---
 def main():
-    output_file_path = get_unique_filename("diff_dump")
-    diff_output = get_diff_excluding_file(output_file_path.name)
+    """Main function to generate and save the diff."""
+    diff_output, output_file_path = get_full_diff()
 
-    if not diff_output.strip():
-        print("No uncommitted changes detected. Nothing to dump.")
+    if not diff_output:
+        print("No uncommitted changes detected or an error occurred. Nothing to dump.")
         return
 
+    # Now we write the content to the file path we determined earlier.
     with open(output_file_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(prompt_header)
         f.write("\n---\n\n")
         f.write("```diff\n")
-        f.write(diff_output.strip() + "\n")
+        f.write(diff_output + "\n")
         f.write("```")
 
-    print(f"✅ Diff dumped to: {output_file_path.name}")
+    print(f"✅ Full diff dumped to: {output_file_path.name}")
 
 if __name__ == "__main__":
     main()
