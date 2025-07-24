@@ -2,13 +2,13 @@
   "name": "codebase-dumper",
   "displayName": "Codebase Dumper",
   "description": "Dumps the current codebase into a single text file.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/RandomlyZay/Codebase-Dumper.git"
   },
   "engines": {
-    "vscode": "^1.89.0"
+    "vscode": "^1.102.0"
   },
   "categories": [
     "Other"
@@ -50,14 +50,14 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.89.0",
-    "@types/mocha": "^10.0.6",
-    "@types/node": "24.0.1",
-    "@typescript-eslint/eslint-plugin": "^7.7.1",
-    "@typescript-eslint/parser": "^7.7.1",
-    "eslint": "^8.57.0",
-    "typescript": "^5.4.5",
+    "@types/vscode": "1.102.0",
+    "@types/mocha": "10.0.10",
+    "@types/node": "24.1.0",
+    "@typescript-eslint/eslint-plugin": "8.38.0",
+    "@typescript-eslint/parser": "8.38.0",
+    "eslint": "9.31.0",
+    "typescript": "5.8.3",
     "@vscode/test-cli": "0.0.11",
-    "@vscode/test-electron": "^2.3.9"
+    "@vscode/test-electron": "2.5.2"
   }
 }
