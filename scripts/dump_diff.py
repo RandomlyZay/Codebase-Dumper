@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-import sys  # ✅ Import sys to read command-line arguments
+import sys
 
 # --- CONFIGURATION ---
 
@@ -25,7 +25,10 @@ def get_full_diff() -> tuple[str, Path | None]:
     try:
         # 1. Find the repo root.
         repo_root_cmd = ["git", "rev-parse", "--show-toplevel"]
-        repo_root_str = subprocess.check_output(repo_root_cmd, text=True, stderr=subprocess.PIPE).strip()
+        # ✅ Specify UTF-8 encoding
+        repo_root_str = subprocess.check_output(
+            repo_root_cmd, text=True, encoding="utf-8", stderr=subprocess.PIPE
+        ).strip()
         repo_root = Path(repo_root_str)
 
         # 2. Check for initial commit.
@@ -33,17 +36,19 @@ def get_full_diff() -> tuple[str, Path | None]:
             ["git", "rev-parse", "--verify", "HEAD"],
             check=True,
             capture_output=True,
+            text=True, # ✅ Process stderr as text
+            encoding="utf-8", # ✅ Use UTF-8 for error messages
             cwd=repo_root
         )
     except FileNotFoundError:
         print("❌ Git not found. Make sure it's installed and in your PATH.")
         return "", None
     except subprocess.CalledProcessError as e:
-        if "unknown revision" in e.stderr.decode():
+        if "unknown revision" in e.stderr:
             print("🤔 No commits found. Cannot create a diff against HEAD.")
             print("   Please make an initial commit first.")
         else:
-            print(f"❌ Error finding git repo root: {e.stderr.decode().strip()}")
+            print(f"❌ Error finding git repo root: {e.stderr.strip()}")
         return "", None
 
     # 1. Determine the output filename BEFORE listing untracked files.
@@ -51,14 +56,17 @@ def get_full_diff() -> tuple[str, Path | None]:
 
     # 2. Get all untracked files.
     cmd_untracked = ["git", "ls-files", "--others", "--exclude-standard"]
-    untracked_output = subprocess.check_output(cmd_untracked, text=True, cwd=repo_root)
-    
+    # ✅ Specify UTF-8 encoding
+    untracked_output = subprocess.check_output(
+        cmd_untracked, text=True, encoding="utf-8", cwd=repo_root
+    )
+
     # 3. Filter out the determined output filename from the list.
     untracked_files_to_add = [
         f for f in untracked_output.splitlines()
         if repo_root / f != output_file
     ]
-    
+
     try:
         # 4. Use "intent-to-add" on the FILTERED list.
         if untracked_files_to_add:
@@ -66,12 +74,14 @@ def get_full_diff() -> tuple[str, Path | None]:
 
         # 5. Get the diff, excluding the output file via pathspec.
         pathspec = f":(exclude){output_file.relative_to(repo_root)}"
+        # ✅ Specify UTF-8 encoding (This was the line that crashed)
         full_diff = subprocess.check_output(
             ["git", "diff", "HEAD", "--", ".", pathspec],
             text=True,
+            encoding="utf-8",
             cwd=repo_root
         ).strip()
-        
+
         return full_diff, output_file
 
     except subprocess.CalledProcessError as e:
@@ -95,11 +105,11 @@ def main():
 
     # Now we write the content to the file path we determined earlier.
     with open(output_file_path, "w", encoding="utf-8", newline="\n") as f:
-        # ✅ Conditionally write the prompt header
+        # Conditionally write the prompt header
         if "--no-prompt" not in sys.argv:
             f.write(prompt_header)
             f.write("\n---\n\n")
-        
+
         f.write("```diff\n")
         f.write(diff_output + "\n")
         f.write("```")
