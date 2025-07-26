@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 import fnmatch
 import sys
+from typing import Union # ✅ Import Union
 
 # --- CONFIGURATION ---
 
@@ -79,7 +80,8 @@ If something is “fine for now,” treat it as such unless it poses future risk
 """
 
 # --- TYPE DEFINITIONS ---
-Tree = dict[str, "Tree" | None]
+# ✅ Use the backward-compatible Union type
+Tree = dict[str, Union["Tree", None]]
 
 # --- HELPER FUNCTIONS ---
 
