@@ -1,12 +1,10 @@
 import subprocess
 from pathlib import Path
+import sys  # ✅ Import sys to read command-line arguments
 
 # --- CONFIGURATION ---
 
-prompt_header = """Here are the changes implemented based on your last review.
-
-Please analyze this diff and let me know if the suggestions were correctly implemented or if any new issues were introduced.
-"""
+prompt_header = """Here are the changes implemented based on your last review. Please analyze this diff and let me know if the suggestions were correctly implemented or if any new issues were introduced. """
 
 # --- HELPER FUNCTIONS ---
 def get_unique_filename(base_path: Path, base_name: str) -> Path:
@@ -21,7 +19,6 @@ def get_unique_filename(base_path: Path, base_name: str) -> Path:
 def get_full_diff() -> tuple[str, Path | None]:
     """
     Gets the uncommitted diff for all changes in the repo.
-
     Returns a tuple of (diff_string, repo_root_path).
     Returns ("", None) on error.
     """
@@ -98,8 +95,11 @@ def main():
 
     # Now we write the content to the file path we determined earlier.
     with open(output_file_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(prompt_header)
-        f.write("\n---\n\n")
+        # ✅ Conditionally write the prompt header
+        if "--no-prompt" not in sys.argv:
+            f.write(prompt_header)
+            f.write("\n---\n\n")
+        
         f.write("```diff\n")
         f.write(diff_output + "\n")
         f.write("```")

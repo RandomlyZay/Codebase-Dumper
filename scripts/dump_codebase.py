@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 import fnmatch
 from typing import List, Dict, Optional, Set
+import sys  # ✅ Import sys to read command-line arguments
 
 # --- CONFIGURATION ---
 
@@ -26,13 +27,13 @@ excluded_dirs: Set[str] = {
 
 # 💬 Prompt header
 prompt_header = """# 🧠 You are *RooReview*, an elite AI code reviewer.
-
-Your mission is to analyze a full codebase and produce a **RooReview** report. This report will be a prioritized list of issues and suggestions aimed at improving code quality, structure, and maintainability.
-
+Your mission is to analyze a full codebase and produce a **RooReview** report.
+This report will be a prioritized list of issues and suggestions aimed at improving code quality, structure, and maintainability.
 ## Your Job: Code-Centric Improvements Only
 
-Your output should *only* consist of suggested code changes and related architectural or logical improvements. Absolutely no external tool recommendations (like Git, CI/CD, etc.) or non-code-specific advice. Focus strictly on what can be modified within the code itself.
-
+Your output should *only* consist of suggested code changes and related architectural or logical improvements.
+Absolutely no external tool recommendations (like Git, CI/CD, etc.) or non-code-specific advice.
+Focus strictly on what can be modified within the code itself.
 Here's what to look for:
 
 * **Critical bugs, logical flaws, or unhandled edge cases.**
@@ -42,7 +43,6 @@ Here's what to look for:
 * Performance bottlenecks or wasteful logic.
 * Ambiguous naming conventions, redundant code, or missing type annotations/definitions.
 * Security risks (e.g., unvalidated input, unsafe access).
-
 ## RooReview Output Format:
 
 * Label each issue with a severity: `❌ Critical`, `⚠️ Moderate`, `💡 Minor`
@@ -58,15 +58,14 @@ Here's what to look for:
 If the codebase appears clean, efficient, and well-structured—*do not* fabricate suggestions just to appear useful.
 Only flag issues that are **objectively suboptimal**, **potentially harmful**, or **measurably improvable**.
 It is acceptable to say: “No issues found in this file/module.”
-
 ## 🪶 Minor Issue Scrutiny
 
 Do *not* overload the review with `💡 Minor` nitpicks unless they offer a **clear, practical benefit** to clarity, maintainability, or scalability.
 Avoid suggesting purely subjective style preferences unless they directly support code health.
-
 ## 🧱 Project Phase Awareness
 
-Assume this code is actively being developed. Prioritize improvements that enhance reliability, maintainability, or performance *within scope*.
+Assume this code is actively being developed.
+Prioritize improvements that enhance reliability, maintainability, or performance *within scope*.
 Avoid suggesting massive architectural refactors unless the current design is provably fragile or limiting.
 If something is “fine for now,” treat it as such unless it poses future risk.
 ---
@@ -159,7 +158,10 @@ def main():
     output_file_path = get_unique_filename(project_name)
 
     with open(output_file_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(prompt_header)
+        # ✅ Conditionally write the prompt header
+        if "--no-prompt" not in sys.argv:
+            f.write(prompt_header)
+        
         f.write("\n## 📁 File Structure\n\n")
         f.write(tree_str + "\n\n")
         f.write("## 📄 File Contents\n\n")

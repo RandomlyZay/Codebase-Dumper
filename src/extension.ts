@@ -15,169 +15,56 @@ export function activate(context: vscode.ExtensionContext) {
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  // --- Register the Command ---
-  // The command can be triggered by the Command Palette, the status bar, or a right-click.
+  // --- Register the Commands ---
   // The 'uri' argument is provided by VS Code when run from a context menu.
-  let disposable = vscode.commands.registerCommand(
+  const dumpCodebaseDisposable = vscode.commands.registerCommand(
     'codebase-dumper.dumpCodebase',
     (uri?: vscode.Uri) => {
-      let projectRoot: string | undefined;
+      runPythonScript(context, 'dump_codebase.py', uri, 'Dumping codebase...');
+    },
+  );
 
-      if (uri) {
-        // If 'uri' exists, the command was run from the Explorer context menu.
-        projectRoot = uri.fsPath;
-      } else {
-        // Otherwise, find the root of the currently open project.
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders && workspaceFolders.length > 0) {
-          projectRoot = workspaceFolders[0].uri.fsPath;
-        }
-      }
-
-      if (!projectRoot) {
-        vscode.window.showErrorMessage(
-          'No project folder found. Open a folder or right-click one.',
-        );
-        return;
-      }
-
-      // Path to the Python script within your extension's folder
-      const pythonScriptPath = path.join(
-        context.extensionPath,
-        'scripts',
+  const dumpCodebaseWithoutPromptDisposable = vscode.commands.registerCommand(
+    'codebase-dumper.dumpCodebaseWithoutPrompt',
+    (uri?: vscode.Uri) => {
+      runPythonScript(
+        context,
         'dump_codebase.py',
-      );
-
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: 'Dumping codebase...',
-          cancellable: false,
-        },
-        (progress) => {
-          const p = new Promise<void>((resolve) => {
-            // We run the script from the determined project's root directory.
-            const pythonProcess = spawn('python', [pythonScriptPath], {
-              cwd: projectRoot,
-              env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
-            });
-
-            let stdout = '';
-            let stderr = '';
-
-            pythonProcess.stdout.on('data', (data) => {
-              stdout += data.toString();
-            });
-
-            pythonProcess.stderr.on('data', (data) => {
-              stderr += data.toString();
-            });
-
-            pythonProcess.on('close', (code) => {
-              if (code === 0) {
-                vscode.window.showInformationMessage(stdout.trim());
-              } else {
-                vscode.window.showErrorMessage(
-                  `Error dumping codebase: ${stderr}`,
-                );
-              }
-              resolve();
-            });
-
-            pythonProcess.on('error', (err) => {
-              vscode.window.showErrorMessage(
-                `Failed to start script: ${err.message}`,
-              );
-              resolve();
-            });
-          });
-
-          return p;
-        },
+        uri,
+        'Dumping codebase (no prompt)...',
+        ['--no-prompt'],
       );
     },
   );
 
-  context.subscriptions.push(disposable);
-
-  // --- Register the Dump Diff Command ---
   const dumpDiffDisposable = vscode.commands.registerCommand(
     'codebase-dumper.dumpDiff',
     (uri?: vscode.Uri) => {
-      let projectRoot: string | undefined;
+      runPythonScript(context, 'dump_diff.py', uri, 'Dumping code diff...');
+    },
+  );
 
-      if (uri) {
-        projectRoot = uri.fsPath;
-      } else {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders && workspaceFolders.length > 0) {
-          projectRoot = workspaceFolders[0].uri.fsPath;
-        }
-      }
-
-      if (!projectRoot) {
-        vscode.window.showErrorMessage(
-          'No project folder found. Open a folder or right-click one.',
-        );
-        return;
-      }
-
-      const pythonScriptPath = path.join(
-        context.extensionPath,
-        'scripts',
+  const dumpDiffWithoutPromptDisposable = vscode.commands.registerCommand(
+    'codebase-dumper.dumpDiffWithoutPrompt',
+    (uri?: vscode.Uri) => {
+      runPythonScript(
+        context,
         'dump_diff.py',
-      );
-
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: 'Dumping code diff...',
-          cancellable: false,
-        },
-        (progress) => {
-          const p = new Promise<void>((resolve) => {
-            const pythonProcess = spawn('python', [pythonScriptPath], {
-              cwd: projectRoot,
-              env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
-            });
-
-            let stdout = '';
-            let stderr = '';
-
-            pythonProcess.stdout.on('data', (data) => {
-              stdout += data.toString();
-            });
-
-            pythonProcess.stderr.on('data', (data) => {
-              stderr += data.toString();
-            });
-
-            pythonProcess.on('close', (code) => {
-              if (code === 0) {
-                vscode.window.showInformationMessage(
-                  stdout.trim() || 'Diff dumped successfully.',
-                );
-              } else {
-                vscode.window.showErrorMessage(`Error dumping diff: ${stderr}`);
-              }
-              resolve();
-            });
-
-            pythonProcess.on('error', (err) => {
-              vscode.window.showErrorMessage(
-                `Failed to start script: ${err.message}`,
-              );
-              resolve();
-            });
-          });
-          return p;
-        },
+        uri,
+        'Dumping code diff (no prompt)...',
+        ['--no-prompt'],
       );
     },
   );
-  context.subscriptions.push(dumpDiffDisposable);
 
-  // Optionally, add a status bar item for the diff command
+  context.subscriptions.push(
+    dumpCodebaseDisposable,
+    dumpCodebaseWithoutPromptDisposable,
+    dumpDiffDisposable,
+    dumpDiffWithoutPromptDisposable,
+  );
+
+  // --- Add Status Bar Item for the Diff Command ---
   const diffStatusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     99,
@@ -187,6 +74,84 @@ export function activate(context: vscode.ExtensionContext) {
   diffStatusBarItem.tooltip = 'Dump a Git diff to a text file';
   diffStatusBarItem.show();
   context.subscriptions.push(diffStatusBarItem);
+}
+
+function runPythonScript(
+  context: vscode.ExtensionContext,
+  scriptName: string,
+  uri: vscode.Uri | undefined,
+  title: string,
+  args: string[] = [], // ✅ Add args parameter
+) {
+  let projectRoot: string | undefined;
+
+  if (uri) {
+    projectRoot = uri.fsPath;
+  } else {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders && workspaceFolders.length > 0) {
+      projectRoot = workspaceFolders[0].uri.fsPath;
+    }
+  }
+
+  if (!projectRoot) {
+    vscode.window.showErrorMessage(
+      'No project folder found. Open a folder or right-click one.',
+    );
+    return;
+  }
+
+  const pythonScriptPath = path.join(
+    context.extensionPath,
+    'scripts',
+    scriptName,
+  );
+
+  vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: title,
+      cancellable: false,
+    },
+    (progress) => {
+      const p = new Promise<void>((resolve) => {
+        // ✅ Pass the args to the spawn command
+        const pythonProcess = spawn('python', [pythonScriptPath, ...args], {
+          cwd: projectRoot,
+          env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+        });
+
+        let stdout = '';
+        let stderr = '';
+
+        pythonProcess.stdout.on('data', (data) => {
+          stdout += data.toString();
+        });
+        pythonProcess.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        pythonProcess.on('close', (code) => {
+          if (code === 0) {
+            vscode.window.showInformationMessage(
+              stdout.trim() || 'Action completed successfully.',
+            );
+          } else {
+            vscode.window.showErrorMessage(`Error: ${stderr}`);
+          }
+          resolve();
+        });
+
+        pythonProcess.on('error', (err) => {
+          vscode.window.showErrorMessage(
+            `Failed to start script: ${err.message}`,
+          );
+          resolve();
+        });
+      });
+      return p;
+    },
+  );
 }
 
 // This function is called when your extension is deactivated
