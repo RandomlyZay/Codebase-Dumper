@@ -42,17 +42,44 @@
         "title": "Dump Diffs"
       }
     ],
+    "submenus": [
+      {
+        "id": "codebaseDumper.submenu",
+        "label": "Codebase Dumper"
+      }
+    ],
     "menus": {
       "explorer/context": [
         {
+          "submenu": "codebaseDumper.submenu",
           "when": "explorerResourceIsFolder",
-          "command": "codebase-dumper.generateRooReview",
           "group": "navigation@5"
+        }
+      ],
+      "codebaseDumper.submenu": [
+        {
+          "command": "codebase-dumper.dumpCodebase",
+          "group": "1_dump"
         },
         {
-          "when": "explorerResourceIsFolder",
           "command": "codebase-dumper.dumpDiff",
-          "group": "navigation@6"
+          "group": "1_dump"
+        },
+        {
+          "command": "codebase-dumper.generateRooReview",
+          "group": "2_review"
+        },
+        {
+          "command": "codebase-dumper.rooreviewAuditor",
+          "group": "2_review"
+        },
+        {
+          "command": "codebase-dumper.codebaseAuditor",
+          "group": "2_review"
+        },
+        {
+          "command": "codebase-dumper.featureArchitect",
+          "group": "3_architect"
         }
       ]
     }
@@ -72,7 +99,7 @@
     "@typescript-eslint/eslint-plugin": "8.38.0",
     "@typescript-eslint/parser": "8.38.0",
     "eslint": "9.32.0",
-    "typescript": "5.9.2",
+    "typescript": "5.8.3",
     "@vscode/test-cli": "0.0.11",
     "@vscode/test-electron": "2.5.2"
   }
