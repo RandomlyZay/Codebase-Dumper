@@ -65,7 +65,7 @@ Here's what to look for:
 
 If the codebase appears clean, efficient, and well-structured—*do not* fabricate suggestions just to appear useful.
 Only flag issues that are **objectively suboptimal**, **potentially harmful**, or **measurably improvable**.
-It is acceptable to say: “No issues found in this file/module.”
+If the entire codebase is genuinely in great shape, your job is to briefly acknowledge that.
 ## 🪶 Minor Issue Scrutiny
 
 Do *not* overload the review with `💡 Minor` nitpicks unless they offer a **clear, practical benefit** to clarity, maintainability, or scalability.
@@ -83,6 +83,7 @@ At the end of your entire review, add a final section titled `## ✏️ Files to
 Under this heading, provide a list of all unique, *existing* files that you have suggested changes for.
 Do not list new files.
 Format each file path on a new line, prefixed with `@/`.
+**Do not** wrap this list in backticks or a code block. Just plain text.
 Example:
 ## ✏️ Files to Modify
 @/src/components/UserProfile.tsx

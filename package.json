@@ -75,7 +75,7 @@
         },
         {
           "command": "codebase-dumper.codebaseAuditor",
-          "group": "2_review"
+          "group": "3_architect"
         },
         {
           "command": "codebase-dumper.featureArchitect",
