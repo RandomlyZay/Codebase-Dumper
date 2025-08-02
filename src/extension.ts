@@ -64,6 +64,19 @@ export function activate(context: vscode.ExtensionContext) {
     },
   );
 
+  const documentationAuditor = vscode.commands.registerCommand(
+    'codebase-dumper.documentationAuditor',
+    (uri?: vscode.Uri) => {
+      runPythonScript(
+        context,
+        'dump_codebase.py',
+        uri,
+        'Auditing Documentation...',
+        ['--prompt=documentation_auditor'],
+      );
+    },
+  );
+
   const featureArchitect = vscode.commands.registerCommand(
     'codebase-dumper.featureArchitect',
     (uri?: vscode.Uri) => {
@@ -89,6 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
     generateRooReview,
     rooreviewAuditor,
     codebaseAuditor,
+    documentationAuditor,
     featureArchitect,
     dumpDiff,
   );
@@ -141,7 +155,6 @@ function runPythonScript(
       'scripts',
       scriptName,
     );
-
     vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,

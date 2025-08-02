@@ -34,6 +34,10 @@
         "title": "Codebase Auditor"
       },
       {
+        "command": "codebase-dumper.documentationAuditor",
+        "title": "Documentation Auditor"
+      },
+      {
         "command": "codebase-dumper.featureArchitect",
         "title": "Feature Architect"
       },
@@ -75,11 +79,15 @@
         },
         {
           "command": "codebase-dumper.codebaseAuditor",
-          "group": "3_architect"
+          "group": "3_audit"
+        },
+        {
+          "command": "codebase-dumper.documentationAuditor",
+          "group": "3_audit"
         },
         {
           "command": "codebase-dumper.featureArchitect",
-          "group": "3_architect"
+          "group": "4_architect"
         }
       ]
     }
