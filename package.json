@@ -19,42 +19,40 @@
     "commands": [
       {
         "command": "codebase-dumper.dumpCodebase",
-        "title": "Dump Codebase to Text File"
+        "title": "Dump Codebase"
+      },
+      {
+        "command": "codebase-dumper.generateRooReview",
+        "title": "Generate RooReview"
+      },
+      {
+        "command": "codebase-dumper.rooreviewAuditor",
+        "title": "RooReview Auditor"
+      },
+      {
+        "command": "codebase-dumper.codebaseAuditor",
+        "title": "Codebase Auditor"
+      },
+      {
+        "command": "codebase-dumper.featureArchitect",
+        "title": "Feature Architect"
       },
       {
         "command": "codebase-dumper.dumpDiff",
-        "title": "Dump Git Diff to Text File"
-      },
-      {
-        "command": "codebase-dumper.dumpCodebaseWithoutPrompt",
-        "title": "Dump Codebase (No AI Prompt)"
-      },
-      {
-        "command": "codebase-dumper.dumpDiffWithoutPrompt",
-        "title": "Dump Git Diff (No AI Prompt)"
+        "title": "Dump Diffs"
       }
     ],
     "menus": {
       "explorer/context": [
         {
           "when": "explorerResourceIsFolder",
-          "command": "codebase-dumper.dumpCodebase",
+          "command": "codebase-dumper.generateRooReview",
           "group": "navigation@5"
         },
         {
           "when": "explorerResourceIsFolder",
           "command": "codebase-dumper.dumpDiff",
           "group": "navigation@6"
-        },
-        {
-          "when": "explorerResourceIsFolder",
-          "command": "codebase-dumper.dumpCodebaseWithoutPrompt",
-          "group": "navigation@7"
-        },
-        {
-          "when": "explorerResourceIsFolder",
-          "command": "codebase-dumper.dumpDiffWithoutPrompt",
-          "group": "navigation@8"
         }
       ]
     }
@@ -74,7 +72,7 @@
     "@typescript-eslint/eslint-plugin": "8.38.0",
     "@typescript-eslint/parser": "8.38.0",
     "eslint": "9.32.0",
-    "typescript": "5.8.3",
+    "typescript": "5.9.2",
     "@vscode/test-cli": "0.0.11",
     "@vscode/test-electron": "2.5.2"
   }

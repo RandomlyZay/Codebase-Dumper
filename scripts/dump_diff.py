@@ -105,10 +105,8 @@ def main():
 
     # Now we write the content to the file path we determined earlier.
     with open(output_file_path, "w", encoding="utf-8", newline="\n") as f:
-        # Conditionally write the prompt header
-        if "--no-prompt" not in sys.argv:
-            f.write(prompt_header)
-            f.write("\n---\n\n")
+        f.write(prompt_header)
+        f.write("\n---\n\n")
 
         f.write("```diff\n")
         f.write(diff_output + "\n")
